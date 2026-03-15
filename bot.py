@@ -16,7 +16,7 @@ def create_vector_db(file_path):
     loader = PyPDFLoader(file_path)
     docs = loader.load()
 
-    # Safety check
+    
     if not docs:
         return None
 
@@ -27,7 +27,7 @@ def create_vector_db(file_path):
 
     chunks = splitter.split_documents(docs)
 
-    # Safety check
+    
     if not chunks:
         return None
 
@@ -48,7 +48,7 @@ if file:
 
     with st.spinner("Processing PDF..."):
 
-        # create temp file with .pdf extension
+        
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
             temp.write(file.read())
             path = temp.name
