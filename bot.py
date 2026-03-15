@@ -16,12 +16,20 @@ def create_vector_db(file_path):
     loader = PyPDFLoader(file_path)
     docs = loader.load()
 
+    # Safety check
+    if not docs:
+        return None
+
     splitter = CharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50
     )
 
     chunks = splitter.split_documents(docs)
+
+    # Safety check
+    if not chunks:
+        return None
 
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
@@ -40,12 +48,18 @@ if file:
 
     with st.spinner("Processing PDF..."):
 
-        temp = tempfile.NamedTemporaryFile(delete=False)
-        temp.write(file.read())
+        # create temp file with .pdf extension
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
+            temp.write(file.read())
+            path = temp.name
 
-        db = create_vector_db(temp.name)
+        db = create_vector_db(path)
 
-    st.success("PDF Ready! Ask questions 👇")
+    if db is None:
+        st.error("Could not process this PDF.")
+        st.stop()
+
+    st.success("PDF Ready! Ask questions below 👇")
 
     question = st.text_input("Ask a question")
 
@@ -53,7 +67,7 @@ if file:
 
         results = db.similarity_search(question, k=3)
 
-        st.subheader("Answer from document:")
+        st.subheader("Relevant text from PDF:")
 
         for r in results:
             st.write(r.page_content)
